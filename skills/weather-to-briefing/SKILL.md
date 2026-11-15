@@ -1,7 +1,7 @@
 ---
 name: weather-to-briefing
 description: Build a weather-aware briefing from explicit source data.
-version: 1.0.0
+version: 1.0.2
 author: KarthikeyanK1206
 ---
 

@@ -21,6 +21,6 @@ Calendar input shape: `{"gaps_09_to_17":[{"start":"2026-11-15T09:30:00-08:00","e
 
 ## Version and verification
 
-Release v1.0.0. The release commit identifies the published files; fresh native Hermes installation records its source revision in the hub lock. Verify that revision and file SHA-256 hashes before rerunning. Do not bypass the native skill security scanner.
+Release v1.0.2. The release commit identifies the published files; fresh native Hermes installation records its source revision in the hub lock. Verify that revision and file SHA-256 hashes before rerunning. Do not bypass the native skill security scanner.
 
-This repository contains only the portable skill, with no agent credentials, infrastructure configuration or course PDFs. The CSCI599 integration's plugin/router is separate. Initial implementation AI-assisted with OpenAI Codex (GPT-6); author reviewed it and tested the rule logic, provider failure behavior and installation.
+This repository contains only the portable skill, with no agent credentials, infrastructure configuration or course PDFs. The CSCI599 integration's plugin/router is separate. Initial implementation generated with OpenAI Codex (GPT-6). The implementation partner reviewed the code and ran rule, provider-failure and native-install checks; this does not claim a student-authored review or personal reflection.
