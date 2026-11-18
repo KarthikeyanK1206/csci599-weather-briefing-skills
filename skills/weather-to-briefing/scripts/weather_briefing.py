@@ -48,12 +48,29 @@ def fetch_weather(fetch):
                 "daily":daily,"units":{"temperature_2m_max":"°C","temperature_2m_min":"°C","precipitation_probability_max":"%"}}
 
 
-def recommendations(weather,gaps):
+def recommendations(weather,gaps,*,not_before=None):
+    """Choose a usable gap without changing the displayed calendar.
+
+    Live callers pass an aware current time. Omitting the cutoff preserves the
+    deterministic whole-day evaluation used by historical comparison fixtures.
+    """
+    if not_before is not None and (not_before.tzinfo is None or not_before.utcoffset() is None):
+        raise ValueError("recommendation_cutoff_requires_timezone")
     result=[];rain=weather.get("precipitation_probability_max");hot=weather.get("temperature_2m_max")
     if rain is not None and rain>=60:result.append("Bring an umbrella and allow 15 extra minutes for outdoor travel.")
     if hot is not None and hot>=30:result.append("Choose an indoor break during the warmest part of the day.")
     for gap in gaps:
         start=datetime.fromisoformat(gap["start"]);end=datetime.fromisoformat(gap["end"])
+        if not_before is not None:
+            if start.utcoffset() is None or end.utcoffset() is None:
+                raise ValueError("calendar_gap_requires_timezone")
+            if end<=not_before:continue
+            if start<not_before:
+                start=not_before.astimezone(start.tzinfo)
+                # Recommendations display minutes; round forward so the shown
+                # start never precedes now, then require 30 remaining minutes.
+                if start.second or start.microsecond:
+                    start=start.replace(second=0,microsecond=0)+timedelta(minutes=1)
         if (end-start).total_seconds()>=1800:
             activity="a short outdoor break" if rain is not None and rain<40 and hot is not None and 15<=hot<30 else "indoor preparation or a study break"
             result.append(f"Use {start:%H:%M}–{end:%H:%M} for {activity}.");break
@@ -88,8 +105,13 @@ def main():
         base=datetime.combine(today,datetime.min.time(),tzinfo=zone)
         calendar={"source":"explicitly_fictional_demo","gaps_09_to_17":[{"start":base.replace(hour=9,minute=30).isoformat(),"end":base.replace(hour=10).isoformat()}]}
         emails=[{"subject":"Fictional Bluebird review","summary":"Review the synthetic outline."}]
+    # The fictional demo uses a disclosed morning reference time so running it
+    # at night still demonstrates the fixed scenario, not a live recommendation.
+    reference_time=base.replace(hour=8) if args.synthetic_demo else datetime.now(zone)
     print(json.dumps({"date":date,"weather_source":data["source"],"weather":weather,"calendar":calendar,"emails":emails,
-                      "recommendations":recommendations(weather,calendar.get("gaps_09_to_17",[]))},indent=2))
+                      "recommendation_time_mode":"fictional_demo_reference" if args.synthetic_demo else "current_time",
+                      "recommendation_reference_time":reference_time.isoformat(),
+                      "recommendations":recommendations(weather,calendar.get("gaps_09_to_17",[]),not_before=reference_time)},indent=2))
 
 
 if __name__=="__main__":main()

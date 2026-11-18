@@ -1,7 +1,7 @@
 ---
 name: weather-to-briefing
 description: Build a weather-aware briefing from explicit source data.
-version: 1.0.2
+version: 1.0.3
 author: KarthikeyanK1206
 ---
 
@@ -17,10 +17,20 @@ python3 scripts/weather_briefing.py --synthetic-demo
 ```
 
 This fetches real weather and explicitly labels its fictional calendar/email
-inputs. It needs Python 3.10+ and HTTPS CA certificates, with no API key.
+inputs and fictional 08:00 Los Angeles reference time. It needs Python 3.10+
+and HTTPS CA certificates, with no API key.
 Alternatively provide `--calendar FILE` and `--emails FILE` JSON fixtures.
 Calendar JSON uses `gaps_09_to_17` entries with ISO `start` and `end` fields.
 Without calendar inputs, it reports weather without inventing calendar gaps.
+Use timezone-aware timestamps. Ordinary standalone runs use the current time:
+elapsed gaps are skipped and an ongoing gap is clipped to now, rounded forward
+to the next displayed minute, before requiring 30 usable minutes. Tomorrow's
+future gaps remain eligible. The full calendar is still displayed unchanged.
+The output labels its recommendation time mode and reference timestamp.
+
+Python callers serving live requests must pass an aware current time through
+`recommendations(weather, gaps, not_before=current_time)`. Omitting the cutoff
+is supported only for deterministic whole-day or historical fixture evaluation.
 
 Original rules: rain probability >=60% recommends an umbrella and 15-minute
 travel buffer; max temperature >=30 °C recommends an indoor break; otherwise
